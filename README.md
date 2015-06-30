@@ -12,6 +12,6 @@ LOCATION_LANGUAGES = (
     # (('prefix', 'another_prefix'), ('lang1', 'lang2', 'lang3'), 'fallback_language')
     (('/translated_part_one/', '/translated_part_two/'), ('lv', 'et', 'lt', 'ru'), 'ru'),
     (('/translated_part_three/', '/translated_part_four/'), ('en', 'de', ), 'en'),
-)```
-
+)
+```
 and just have fun!
