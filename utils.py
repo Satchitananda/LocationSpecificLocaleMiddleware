@@ -2,6 +2,18 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.datastructures import SortedDict
 
+
+def get_location_languages_mapping():
+    mapping = {}
+    for conf in settings.LOCATION_LANGUAGES:
+        parts, languages, fallback = conf
+        for part in parts:
+            mapping[part] = {
+                'languages': languages,
+                'fallback': fallback
+            }
+    return mapping
+
 def startswithany(to_check, parts):
     for p in parts:
         if to_check.startswith(p):
@@ -9,6 +21,7 @@ def startswithany(to_check, parts):
     return None
 
 def supported_languages_for_path(path):
+    location_languages_mapping = get_location_languages_mapping()
     language_from_path = translation.get_language_from_path(
         path, supported=SortedDict(settings.LANGUAGES)
     )
@@ -16,11 +29,11 @@ def supported_languages_for_path(path):
     if language_from_path:
         path = path.replace('/%s' % language_from_path, '', 1)
 
-    res = startswithany(path, settings.LOCATION_LANGUAGES_MAPPING.keys())
+    res = startswithany(path, location_languages_mapping.keys())
     if res:
         return {
-            'languages': list(settings.LOCATION_LANGUAGES_MAPPING[res].get('languages', [])),
-            'fallback': settings.LOCATION_LANGUAGES_MAPPING[res].get('fallback', settings.LANGUAGE_CODE)
+            'languages': list(location_languages_mapping[res].get('languages', [])),
+            'fallback': location_languages_mapping[res].get('fallback', settings.LANGUAGE_CODE)
         }
 
     # Falling to site language
@@ -45,3 +58,12 @@ def get_language(request, check_path=True):
         return language
     else:
         return supported_languages['fallback']
+
+def path_translation_enabled(path):
+    location_languages_mapping = get_location_languages_mapping()
+    language_from_path = translation.get_language_from_path(
+        path, supported=SortedDict(settings.LANGUAGES)
+    )
+    if language_from_path:
+        path = path.replace('/%s' % language_from_path, '', 1)
+    return bool(startswithany(path, location_languages_mapping.keys()))
